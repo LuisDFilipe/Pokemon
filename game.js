@@ -175,6 +175,16 @@ document.getElementById('right').addEventListener('mousedown', () => {
     btn.addEventListener('touchstart', e => {
         e.preventDefault(); // prevent mouse event from also firing
         console.log('Touch ' + dir);
-        // call your move function here too
+
+        moveX = 0;
+        moveY = 0;
+        
+        if (dir == "left") moveX = -1;
+        else if (dir == "right") moveX = 1;
+        else if (dir == "up") moveY = -1;
+        else if (dir == "down") moveY = 1;
+        else return;
+
+        movePlayer(game.scene.scenes[0], moveX, moveY);
     });
 });
