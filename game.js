@@ -42,11 +42,16 @@ function create() {
 }
 
 function update() {
+    player.setVelocityX(0); // reset horizontal velocity
     player.setVelocityY(0); // reset vertical velocity
 
     if (cursors.up.isDown) {
         player.setVelocityY(-150);
     } else if (cursors.down.isDown) {
         player.setVelocityY(150);
+    } else if (cursors.left.isDown) {
+        player.setVelocityX(-150);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(150);
     }
 }
