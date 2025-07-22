@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="version" content="1.0.0">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Pokemon</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -12,6 +13,18 @@
 
 <body>
     <div id="game"></div>
+
+    <!-- Pokemon Catch Popup -->
+    <div id="pokemon-popup" class="popup">
+        <div class="popup-content">
+            <h2>A wild Pokemon appeared!</h2>
+            <img id="pokemon-sprite" src="assets/pokemon/0.png" alt="Pokemon Sprite">
+            <div class="popup-buttons">
+                <button id="catch-btn">Catch</button>
+                <button id="run-btn">Run</button>
+            </div>
+        </div>
+    </div>
 
     <div id="controls">
         <button id="up" class="arrow-button">↑</button>

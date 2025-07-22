@@ -1,8 +1,10 @@
+const APP_VERSION = '1.0.0';
 const TILE_SIZE = 32;
 let player;
 let cursors;
 let wasd;
 let isMoving = false;
+let isBattling = false;
 
 const config = {
     type: Phaser.AUTO,
@@ -89,7 +91,7 @@ function create() {
 }
 
 function update() {    
-    if (isMoving) return;
+    if (isMoving || isBattling) return;
     
     //check key presses
     if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(wasd.left))
@@ -108,9 +110,7 @@ function update() {
 }
 
 function movePlayer(scene, moveX, moveY) {
-    if (isMoving) {
-        return;
-    }
+    if (isMoving || isBattling) return;
 
     var targetX = player.x + moveX * TILE_SIZE;
     var targetY = player.y + moveY * TILE_SIZE;
@@ -137,6 +137,12 @@ function movePlayer(scene, moveX, moveY) {
         if (Phaser.Geom.Rectangle.Contains(zone.rect, targetX, targetY)) {
             //console.debug("Grass", zone.rect, targetX, targetY);
             showToast("Grass", 1000, "top");
+
+            let randomId = Math.floor(Math.random() * 1025) + 1; // 1 to 1025 inclusive
+            let spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomId}.png`;
+
+            showPokemonPopup(spriteUrl);
+
         }
     });
 }
@@ -145,7 +151,6 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
     const toast = document.createElement("div");
     toast.textContent = message;
 
-    const isTop = position.toLowerCase() === "top";
     const initialOffset = "30px";
     const visibleOffset = "50px";
 
@@ -182,7 +187,6 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
     }, duration);
 }
 
-
 // Support touch events
 ['up', 'down', 'left', 'right'].forEach(dir => {
     var btn = document.getElementById(dir);
@@ -211,4 +215,27 @@ window.addEventListener('load', () => {
   if (isMobile()) {
     document.getElementById('controls').style.display = 'flex';
   }
+});
+
+function showPokemonPopup(spritePath) {
+  document.getElementById('pokemon-sprite').src = spritePath;
+  document.getElementById('pokemon-popup').style.display = 'flex';
+  isBattling = true;
+}
+
+function hidePokemonPopup() {
+  document.getElementById('pokemon-popup').style.display = 'none';
+}
+
+document.getElementById('catch-btn').addEventListener('click', () => {
+  console.log("Trying to catch...");
+  // You can add catch logic here
+  hidePokemonPopup();
+  isBattling = false;
+});
+
+document.getElementById('run-btn').addEventListener('click', () => {
+  console.log("Ran away!");
+  hidePokemonPopup();
+  isBattling = false;
 });
