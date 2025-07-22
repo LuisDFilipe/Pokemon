@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const TILE_SIZE = 32;
 let player;
 let cursors;
