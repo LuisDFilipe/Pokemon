@@ -202,3 +202,13 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
         movePlayer(game.scene.scenes[0], moveX, moveY);
     });
 });
+
+function isMobile() {
+  return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+window.addEventListener('load', () => {
+  if (isMobile()) {
+    document.getElementById('controls').style.display = 'flex';
+  }
+});
