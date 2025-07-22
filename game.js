@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const TILE_SIZE = 32;
 let player;
 let cursors;
@@ -90,9 +90,9 @@ function create() {
     });
 }
 
-function update() {    
+function update() {
     if (isMoving || isBattling) return;
-    
+
     //check key presses
     if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(wasd.left))
         var moveX = -1;
@@ -105,7 +105,7 @@ function update() {
     else return;
 
     //movePlayer
-    if((moveX != null) || (moveY != null))
+    if ((moveX != null) || (moveY != null))
         movePlayer(this, (moveX != null) ? moveX : 0, (moveY != null) ? moveY : 0);
 }
 
@@ -124,7 +124,7 @@ function movePlayer(scene, moveX, moveY) {
     if (tile && tile.properties.collides) return; // Block movement if collides
 
     isMoving = true;
-    
+
     scene.tweens.add({
         targets: player,
         x: targetX,
@@ -132,17 +132,18 @@ function movePlayer(scene, moveX, moveY) {
         duration: 100,
         onComplete: () => { isMoving = false; }
     });
-    
+
     grass_trigger_zones.forEach(zone => {
         if (Phaser.Geom.Rectangle.Contains(zone.rect, targetX, targetY)) {
             //console.debug("Grass", zone.rect, targetX, targetY);
             showToast("Grass", 1000, "top");
 
-            let randomId = Math.floor(Math.random() * 1025) + 1; // 1 to 1025 inclusive
-            let spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${randomId}.png`;
+            let pokemonId = Math.floor(Math.random() * 1025) + 1; // 1 to 1025 inclusive
 
-            showPokemonPopup(spriteUrl);
+            let shinyOdds = 10;
+            let isShiny = Math.floor(Math.random() * shinyOdds) === 0;
 
+            showPokemonPopup(pokemonId, isShiny);
         }
     });
 }
@@ -193,10 +194,10 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
     btn.addEventListener('touchstart', e => {
         //e.preventDefault(); // prevent mouse event from also firing
         console.debug('Touch ' + dir);
-        
+
         moveX = 0;
         moveY = 0;
-        
+
         if (dir == "left") moveX = -1;
         else if (dir == "right") moveX = 1;
         else if (dir == "up") moveY = -1;
@@ -208,34 +209,47 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
 });
 
 function isMobile() {
-  return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 window.addEventListener('load', () => {
-  if (isMobile()) {
-    document.getElementById('controls').style.display = 'flex';
-  }
+    if (isMobile()) {
+        document.getElementById('controls').style.display = 'flex';
+    }
 });
 
-function showPokemonPopup(spritePath) {
-  document.getElementById('pokemon-sprite').src = spritePath;
-  document.getElementById('pokemon-popup').style.display = 'flex';
-  isBattling = true;
+function showPokemonPopup(pokemonId, isShiny) {
+    
+    let spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${isShiny ? 'shiny/' : ''}${pokemonId}.png`;
+
+    document.getElementById('pokemon-sprite').src = spriteUrl;
+    document.getElementById('pokemon-popup').style.display = 'flex';
+    document.getElementById('popup-content').className = `popup-content${isShiny ? ' shiny' : ''}`;
+    
+    let popupTitle = document.getElementById('popup-title');
+
+    if (isShiny) {
+        popupTitle.textContent = "A wild shiny Pokemon appeared!";
+    } else {
+        popupTitle.textContent = "A wild Pokemon appeared!";
+    }
+
+    isBattling = true;
 }
 
 function hidePokemonPopup() {
-  document.getElementById('pokemon-popup').style.display = 'none';
+    document.getElementById('pokemon-popup').style.display = 'none';
 }
 
 document.getElementById('catch-btn').addEventListener('click', () => {
-  console.log("Trying to catch...");
-  // You can add catch logic here
-  hidePokemonPopup();
-  isBattling = false;
+    console.log("Trying to catch...");
+    // You can add catch logic here
+    hidePokemonPopup();
+    isBattling = false;
 });
 
 document.getElementById('run-btn').addEventListener('click', () => {
-  console.log("Ran away!");
-  hidePokemonPopup();
-  isBattling = false;
+    console.log("Ran away!");
+    hidePokemonPopup();
+    isBattling = false;
 });
