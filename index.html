@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Pokemon</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 </head>
 
@@ -19,62 +20,7 @@
             <button id="right" class="arrow-button">→</button>
         </div>
     </div>
-
-    <style>
-        #controls {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#up {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 12px;
-    /* space below up button */
-    font-size: 36px;
-    font-weight: bold;
-    border-radius: 12px;
-    border: 2px solid #333;
-    background: #eee;
-    cursor: pointer;
-    outline: none;
-    transition: background-color 0.2s ease;
-}
-
-#up:active {
-    background-color: #ccc;
-}
-
-.middle-row {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    /* spacing between buttons */
-}
-
-.arrow-button {
-    width: 80px;
-    height: 80px;
-    font-size: 36px;
-    font-weight: bold;
-    border-radius: 12px;
-    border: 2px solid #333;
-    background: #eee;
-    cursor: pointer;
-    outline: none;
-    transition: background-color 0.2s ease;
-}
-
-.arrow-button:active {
-    background-color: #ccc;
-}
-    </style>
+    
     <script defer src="game.js"></script>
 </body>
 
