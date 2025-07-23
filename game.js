@@ -140,10 +140,14 @@ function movePlayer(scene, moveX, moveY) {
 
             let pokemonId = Math.floor(Math.random() * 1025) + 1; // 1 to 1025 inclusive
 
+            let encounterOdds = 5;
+            let foundPokemon = Math.floor(Math.random() * encounterOdds) === 0;
+
             let shinyOdds = 10;
             let isShiny = Math.floor(Math.random() * shinyOdds) === 0;
 
-            showPokemonPopup(pokemonId, isShiny);
+            if(foundPokemon)
+                showPokemonPopup(pokemonId, isShiny);
         }
     });
 }
