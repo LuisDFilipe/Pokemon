@@ -1,0 +1,14 @@
+{
+    "grass": [
+        {
+            "level": "1",
+            "encounterOdds": 5,
+            "pokemonIds": ["1", "4", "7", "25"]
+        },
+        {
+            "level": "2",
+            "encounterOdds": 5,
+            "pokemonIds": ["3", "6", "9", "26"]
+        }
+    ]
+}

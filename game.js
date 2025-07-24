@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const TILE_SIZE = 32;
 let player;
 let cursors;
@@ -27,10 +27,15 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
-var map;
-var ground_1_tileset;
-var ground_1_layer;
-var object_layer;
+let map;
+let ground_1_tileset;
+let ground_1_layer;
+let object_layer;
+
+let pokemonId = null;
+let jsonData = null;
+let currentLevel = 1;
+let levelsLoaded = { level_1: false };
 
 function preload() {
     this.load.image('ground_1', 'assets/map/ground_1.png');
@@ -41,6 +46,13 @@ function preload() {
         frameWidth: 32,
         frameHeight: 32
     });
+
+    fetch('data/data.json')
+        .then(response => response.json())
+        .then(data => {
+            saveData(data);
+        })
+        .catch(error => console.error('Error loading JSON:', error));
 }
 
 function create() {
@@ -59,7 +71,7 @@ function create() {
     });
 
     // Place player at a tile position
-    player = this.physics.add.sprite(0 * TILE_SIZE, 0 * TILE_SIZE, 'player');
+    player = this.physics.add.sprite(7 * TILE_SIZE + TILE_SIZE / 2, 6 * TILE_SIZE + TILE_SIZE / 2, 'player');
     player.play('walk');
     player.setOrigin(0.5);
     player.setDepth(10);
@@ -67,17 +79,7 @@ function create() {
 
     this.physics.add.collider(player, ground_1_layer);
 
-    grass_object_layer = map.getObjectLayer('Grass1');
-
-    grass_trigger_zones = grass_object_layer.objects.map(obj => {
-        var sprite = this.add.sprite(obj.x, obj.y - obj.height, 'grass_1');
-        sprite.setOrigin(0, 0);
-        return {
-            name: obj.name,
-            rect: new Phaser.Geom.Rectangle(obj.x, obj.y - obj.height, obj.width, obj.height),
-            triggered: false
-        };
-    });
+    loadLevels();
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -109,6 +111,10 @@ function update() {
         movePlayer(this, (moveX != null) ? moveX : 0, (moveY != null) ? moveY : 0);
 }
 
+function saveData(data) {
+    jsonData = data;
+}
+
 function movePlayer(scene, moveX, moveY) {
     if (isMoving || isBattling) return;
 
@@ -121,35 +127,57 @@ function movePlayer(scene, moveX, moveY) {
     layer = map.getLayer('Ground1').tilemapLayer;
     var tile = layer.hasTileAt(tileX, tileY) ? layer.getTileAt(tileX, tileY) : null;
 
-    if (tile && tile.properties.collides) return; // Block movement if collides
+    // Block movement if collides
+    if (tile && tile.properties.collides) return;
 
     isMoving = true;
 
+    //move player
     scene.tweens.add({
         targets: player,
         x: targetX,
         y: targetY,
-        duration: 100,
+        duration: 100, //movement duration
         onComplete: () => { isMoving = false; }
     });
 
-    grass_trigger_zones.forEach(zone => {
-        if (Phaser.Geom.Rectangle.Contains(zone.rect, targetX, targetY)) {
-            //console.debug("Grass", zone.rect, targetX, targetY);
-            showToast("Grass", 1000, "top");
+    //touched object
+    checkTouchObject(targetX, targetY);
+}
 
-            let pokemonId = Math.floor(Math.random() * 1025) + 1; // 1 to 1025 inclusive
+function checkTouchObject(targetX, targetY) {
+    if (levelsLoaded.level_1 && grass_trigger_zone_1 != null) {
+        grass_trigger_zone_1.forEach(zone => {
+            if (Phaser.Geom.Rectangle.Contains(zone.rect, targetX, targetY))
+                touchGrassEvent("1");
+        });
+    }
 
-            let encounterOdds = 5;
-            let foundPokemon = Math.floor(Math.random() * encounterOdds) === 0;
+    if (levelsLoaded.level_2 && grass_trigger_zone_2 != null) {
+        grass_trigger_zone_2.forEach(zone => {
+            if (Phaser.Geom.Rectangle.Contains(zone.rect, targetX, targetY))
+                touchGrassEvent("2");
+        });
+    }
+}
 
-            let shinyOdds = 10;
-            let isShiny = Math.floor(Math.random() * shinyOdds) === 0;
+function touchGrassEvent(level = "1") {
+    showToast("Grass Level:" + level, 1000, "top");
 
-            if(foundPokemon)
-                showPokemonPopup(pokemonId, isShiny);
-        }
-    });
+    let grassLevelData = jsonData.grass.filter(entry => entry.level == level)[0];
+
+    let encounterOdds = grassLevelData.encounterOdds;
+    let foundPokemon = Math.floor(Math.random() * encounterOdds) == 0;
+
+    let shinyOdds = 10;
+    let isShiny = Math.floor(Math.random() * shinyOdds) == 0;
+
+    if (foundPokemon) {
+        let pokemonIds = grassLevelData.pokemonIds;
+        pokemonId = pokemonIds[Math.floor(Math.random() * pokemonIds.length)];
+
+        showPokemonPopup(pokemonId, isShiny);
+    }
 }
 
 function showToast(message = "This is a toast!", duration = 1000, position = "bottom") {
@@ -164,8 +192,8 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
         [position]: initialOffset, // Sets 'top' or 'bottom'
         left: "50%",
         transform: "translateX(-50%)",
-        background: "#333",
-        color: "#fff",
+        background: "#3334",
+        color: "#fff7",
         padding: "12px 24px",
         borderRadius: "6px",
         fontSize: "14px",
@@ -197,7 +225,7 @@ function showToast(message = "This is a toast!", duration = 1000, position = "bo
     var btn = document.getElementById(dir);
     btn.addEventListener('touchstart', e => {
         //e.preventDefault(); // prevent mouse event from also firing
-        console.debug('Touch ' + dir);
+        //console.debug('Touch ' + dir);
 
         moveX = 0;
         moveY = 0;
@@ -223,13 +251,13 @@ window.addEventListener('load', () => {
 });
 
 function showPokemonPopup(pokemonId, isShiny) {
-    
+
     let spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${isShiny ? 'shiny/' : ''}${pokemonId}.png`;
 
     document.getElementById('pokemon-sprite').src = spriteUrl;
     document.getElementById('pokemon-popup').style.display = 'flex';
     document.getElementById('popup-content').className = `popup-content${isShiny ? ' shiny' : ''}`;
-    
+
     let popupTitle = document.getElementById('popup-title');
 
     if (isShiny) {
@@ -246,14 +274,58 @@ function hidePokemonPopup() {
 }
 
 document.getElementById('catch-btn').addEventListener('click', () => {
-    console.log("Trying to catch...");
+    console.log("Trying to catch...", isBattling, pokemonId);
     // You can add catch logic here
-    hidePokemonPopup();
-    isBattling = false;
+    currentLevel++;
+    closePopup();
 });
 
 document.getElementById('run-btn').addEventListener('click', () => {
     console.log("Ran away!");
+    closePopup();
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closePopup();
+    }
+});
+
+function closePopup() {
     hidePokemonPopup();
     isBattling = false;
-});
+    pokemonId = null;
+    loadLevels();
+}
+
+function loadLevels() {
+    if (!levelsLoaded.level_1) {
+        grass_object_layer_1 = map.getObjectLayer('Grass1');
+
+        grass_trigger_zone_1 = grass_object_layer_1.objects.map(obj => {
+            let sprite = game.scene.scenes[0].add.sprite(obj.x, obj.y - obj.height, 'grass_1');
+            sprite.setOrigin(0, 0);
+            levelsLoaded.level_1 = true;
+            return {
+                name: obj.name,
+                rect: new Phaser.Geom.Rectangle(obj.x, obj.y - obj.height, obj.width, obj.height),
+                triggered: false
+            };
+        });
+    }
+
+    if (currentLevel > 2 && !levelsLoaded.level_2) {
+        grass_object_layer_2 = map.getObjectLayer('Grass2');
+
+        grass_trigger_zone_2 = grass_object_layer_2.objects.map(obj => {
+            let sprite = game.scene.scenes[0].add.sprite(obj.x, obj.y - obj.height, 'grass_1');
+            sprite.setOrigin(0, 0);
+            levelsLoaded.level_2 = true;
+            return {
+                name: obj.name,
+                rect: new Phaser.Geom.Rectangle(obj.x, obj.y - obj.height, obj.width, obj.height),
+                triggered: false
+            };
+        });
+    }
+}
